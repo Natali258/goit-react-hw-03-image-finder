@@ -1,8 +1,10 @@
+import s from './Button.module.css';
+
 export const Button = ({ loadMore }) => {
   return (
     <div>
-      <div>
-        <button onClick={loadMore} type="submit" className="button">
+      <div className={s.btnLoader}>
+        <button onClick={loadMore} type="submit" className={s.button}>
           Load more
         </button>
       </div>

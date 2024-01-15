@@ -2,7 +2,6 @@ import React from 'react';
 import { Button } from './Button/Button';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Loader } from './Loader/Loader';
-import { Modal } from './Modal/Modal';
 import { Searchbar } from './Searchbar/Searchbar';
 import { FetchImage } from 'services/api';
 
@@ -13,25 +12,27 @@ export class App extends React.Component {
     galleryImg: [],
     isLoadMore: false,
     isEmpty: false,
+    showLoader: false,
   };
 
   componentDidUpdate(_, prevState) {
     const { search, page } = this.state;
     if (prevState.search !== search || prevState.page !== page) {
       FetchImage(search, page).then(({ data }) => {
-        console.log(data);
         if (!data.hits.length) {
           this.setState({
             isEmpty: true,
             galleryImg: [],
             page: 1,
             isLoadMore: false,
+            showLoader: false,
           });
           return;
         }
         this.setState(prev => ({
           galleryImg: [...prev.galleryImg, ...data.hits],
           isLoadMore: page < Math.ceil(data.total / 12),
+          showLoader: false,
         }));
       });
     }
@@ -40,25 +41,33 @@ export class App extends React.Component {
   searchName = e => {
     e.preventDefault();
     const search = e.target[1].value;
-    this.setState({ search, isEmpty: false, galleryImg: [], page: 1 });
+    this.setState({
+      search,
+      isEmpty: false,
+      galleryImg: [],
+      page: 1,
+      showLoader: true,
+    });
   };
 
   handleLoadMore = () => {
     this.setState(prevState => ({
       page: prevState.page + 1,
+      showLoader: true,
     }));
   };
 
   render() {
-    const { galleryImg, isLoadMore, isEmpty } = this.state;
+    const { galleryImg, isLoadMore, isEmpty, showLoader } = this.state;
     const loadMore = this.handleLoadMore;
+    console.log(galleryImg);
     return (
-      <div>
+      <div className="containerGallery">
         <Searchbar search={this.searchName} />
         <ImageGallery galleryImgs={galleryImg} />
         {isLoadMore && <Button loadMore={loadMore} />}
-        <Loader />
-        <Modal />
+        {showLoader && <Loader />}
+
         {isEmpty && (
           <p>
             'Sorry, there are no images matching your search query. Please try
