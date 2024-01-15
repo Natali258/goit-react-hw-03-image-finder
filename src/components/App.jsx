@@ -18,29 +18,26 @@ export class App extends React.Component {
   componentDidUpdate(_, prevState) {
     const { search, page } = this.state;
     if (prevState.search !== search || prevState.page !== page) {
-      FetchImage(search, page).then(({ data }) => {
-        if (!data.hits.length) {
-          this.setState({
-            isEmpty: true,
-            galleryImg: [],
-            page: 1,
-            isLoadMore: false,
-            showLoader: false,
-          });
-          return;
-        }
-        this.setState(prev => ({
-          galleryImg: [...prev.galleryImg, ...data.hits],
-          isLoadMore: page < Math.ceil(data.total / 12),
-          showLoader: false,
-        }));
-      });
+      this.setState({ showLoader: true });
+      FetchImage(search, page)
+        .then(({ data }) => {
+          if (!data.hits.length) {
+            this.setState({
+              isEmpty: true,
+              isLoadMore: false,
+            });
+            return;
+          }
+          this.setState(prev => ({
+            galleryImg: [...prev.galleryImg, ...data.hits],
+            isLoadMore: page < Math.ceil(data.total / 12),
+          }));
+        })
+        .finally(this.setState({ showLoader: false }));
     }
   }
 
-  searchName = e => {
-    e.preventDefault();
-    const search = e.target[1].value;
+  searchName = search => {
     this.setState({
       search,
       isEmpty: false,
@@ -53,14 +50,13 @@ export class App extends React.Component {
   handleLoadMore = () => {
     this.setState(prevState => ({
       page: prevState.page + 1,
-      showLoader: true,
     }));
   };
 
   render() {
     const { galleryImg, isLoadMore, isEmpty, showLoader } = this.state;
     const loadMore = this.handleLoadMore;
-    console.log(galleryImg);
+
     return (
       <div className="containerGallery">
         <Searchbar search={this.searchName} />
